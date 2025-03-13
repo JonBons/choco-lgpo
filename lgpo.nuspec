@@ -4,7 +4,7 @@
   <metadata>
     <id>lgpo</id>
     <version>1.0</version>
-    <packageSourceUrl>Whttps://github.com/JonBons/choco-lgpo</packageSourceUrl>
+    <packageSourceUrl>https://github.com/JonBons/choco-lgpo</packageSourceUrl>
     <owners>mgrahamdev</owners>
     <title>lgpo</title>
     <authors>Microsoft</authors>
