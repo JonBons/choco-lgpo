@@ -6,8 +6,12 @@
     <version>1.0</version>
     <packageSourceUrl>https://github.com/JonBons/choco-lgpo</packageSourceUrl>
     <owners>mgrahamdev</owners>
-    <title>lgpo</title>
+    <title>Local Group Policy Object (LGPO) tool</title>
     <authors>Microsoft</authors>
+    <iconUrl>https://i.gyazo.com/e01f0421772b4ef01c132171fd125483.png</iconUrl>
+    <releaseNotes>https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10</releaseNotes>
+    <licenseUrl>https://www.scribd.com/document/630005966/Microsoft-Security-Compliance-Toolkit-Standalone-Use-Terms</licenseUrl>
+    <docsUrl>https://techcommunity.microsoft.com/blog/microsoft-security-baselines/new--updated-security-tools/1631613</docsUrl>
     <projectUrl>https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10#what-is-the-local-group-policy-object-lgpo-tool</projectUrl>
     <tags>lgpo windows security gpo</tags>
     <summary>LGPO.exe is a command-line utility that is designed to help automate management of Local Group Policy.</summary>
