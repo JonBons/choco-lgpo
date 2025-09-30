@@ -33,10 +33,22 @@ jobs:
           name: nupkg
           path: '*.nupkg'
           
+      - name: Extract package info
+        id: package-info
+        shell: pwsh
+        run: |
+          $nuspec = [xml](Get-Content lgpo.nuspec)
+          $version = $nuspec.package.metadata.version
+          $id = $nuspec.package.metadata.id
+          "package-id=$id" >> $env:GITHUB_OUTPUT
+          "package-version=$version" >> $env:GITHUB_OUTPUT
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: '*.nupkg'
+          name: "${{ steps.package-info.outputs.package-id }} v${{ steps.package-info.outputs.package-version }}"
+          body: "Release of ${{ steps.package-info.outputs.package-id }} version ${{ steps.package-info.outputs.package-version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
