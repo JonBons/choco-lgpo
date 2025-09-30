@@ -28,7 +28,7 @@ class TestLGPODownload(unittest.TestCase):
             response = self._http_get_with_retries(LGPO_URL)
         except requests.RequestException as e:
             self._create_github_issue(
-                "LGPO download URL is broken",
+                "[Automated] LGPO download URL is broken",
                 f"LGPO download URL is not accessible: {str(e)}"
             )
             self.fail(f"Failed to download LGPO: {str(e)}")
@@ -36,7 +36,7 @@ class TestLGPODownload(unittest.TestCase):
         content_hash = hashlib.sha256(response.content).hexdigest().upper()
         if content_hash != EXPECTED_SHA256:
             self._create_github_issue(
-                "LGPO ZIP checksum mismatch",
+                "[Automated] LGPO ZIP checksum mismatch",
                 f"Expected SHA256: {EXPECTED_SHA256}\nActual SHA256: {content_hash}"
             )
             self.assertEqual(content_hash, EXPECTED_SHA256)
