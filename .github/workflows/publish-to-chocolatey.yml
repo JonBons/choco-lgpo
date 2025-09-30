@@ -1,0 +1,35 @@
+name: Publish to Chocolatey
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    environment: chocolatey
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+          
+      - name: Install Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        shell: pwsh
+
+      - name: Push to Chocolatey
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+          choco apikey --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
+          choco push $nupkg --source https://push.chocolatey.org/
+        shell: pwsh
