@@ -7,11 +7,12 @@ jobs:
   publish:
     runs-on: windows-latest
     environment: chocolatey
-    
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download .nupkg from latest GitHub Release (no --latest flag)
+      - name: Determine latest release tag
+        id: latest
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -19,11 +20,22 @@ jobs:
           $repo = $env:GITHUB_REPOSITORY
           $tag  = gh api "repos/$repo/releases/latest" --jq ".tag_name"
           if (-not $tag) { throw "Could not determine latest release tag for $repo" }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
           Write-Host "Latest release tag: $tag"
 
-          # Download only the .nupkg assets from that release
-          gh release download $tag -P "*.nupkg" -D dist
+      - name: (Debug) List assets on latest release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view ${{ steps.latest.outputs.tag }} --json assets --jq '.assets[].name'
 
+      - name: Download .nupkg from latest release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ steps.latest.outputs.tag }} -p "*.nupkg" -D dist
           if (-not (Test-Path dist)) { throw "No assets downloaded. Does the latest release have a .nupkg attached?" }
           $pkgs = Get-ChildItem dist\*.nupkg
           if (-not $pkgs) { throw "No .nupkg files found in the latest release assets." }
@@ -34,8 +46,8 @@ jobs:
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
         run: |
+          choco apikey --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
           $nupkg = Get-ChildItem dist\*.nupkg | Select-Object -First 1
           if (-not $nupkg) { throw "No .nupkg found to push." }
-          choco apikey --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
           Write-Host "Pushing $($nupkg.FullName) to Chocolatey…"
           choco push $nupkg.FullName --source https://push.chocolatey.org/
