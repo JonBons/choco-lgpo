@@ -20,17 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install Chocolatey
-        shell: pwsh
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
       - name: Build Package
         shell: pwsh
-        run: |
-          choco pack
+        run: choco pack
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -42,31 +34,40 @@ jobs:
         id: package-info
         shell: pwsh
         run: |
-          # Resolve nuspec (defaults to lgpo.nuspec; falls back to first *.nuspec)
+          # Resolve nuspec
           $nuspecPath = if (Test-Path "lgpo.nuspec") { "lgpo.nuspec" } else { (Get-ChildItem -Filter *.nuspec | Select-Object -First 1).FullName }
           if (-not $nuspecPath) { throw "No .nuspec file found." }
 
           # Parse nuspec
           [xml]$nuspec = Get-Content -LiteralPath $nuspecPath
-          $id      = $nuspec.package.metadata.id
-          $version = $nuspec.package.metadata.version
+          $id      = [string]$nuspec.package.metadata.id
+          $version = [string]$nuspec.package.metadata.version
 
-          # Handle <releaseNotes> if present (preserve multiline/markdown)
+          # releaseNotes can be a *string* (simple element) or an XmlElement (complex)
           $rnNode = $nuspec.package.metadata.releaseNotes
           $releaseNotes = ""
-          if ($rnNode) {
-            # InnerText keeps CDATA text too; Trim to avoid accidental leading/trailing whitespace
-            $releaseNotes = ($rnNode.InnerText | Out-String).Trim()
+          if ($null -ne $rnNode) {
+            if ($rnNode -is [string]) {
+              $releaseNotes = $rnNode.Trim()
+            } elseif ($rnNode.PSObject.TypeNames -contains 'System.Xml.XmlElement') {
+              $releaseNotes = ($rnNode.InnerText | Out-String).Trim()
+            } else {
+              $releaseNotes = ($rnNode | Out-String).Trim()
+            }
           }
 
-          # Standard outputs
-          "package-id=$id"       >> $env:GITHUB_OUTPUT
-          "package-version=$version" >> $env:GITHUB_OUTPUT
+          # Compose final body *here* to avoid YAML expression pitfalls
+          $defaultBody = "Release of $id version $version"
+          $ghBody = if ([string]::IsNullOrWhiteSpace($releaseNotes)) { $defaultBody } else { $releaseNotes }
 
-          # Multiline output for release notes (safe even if empty)
-          "release-notes<<__RN__" >> $env:GITHUB_OUTPUT
-          $releaseNotes           >> $env:GITHUB_OUTPUT
-          "__RN__"                >> $env:GITHUB_OUTPUT
+          # Outputs
+          "package-id=$id"            >> $env:GITHUB_OUTPUT
+          "package-version=$version"  >> $env:GITHUB_OUTPUT
+
+          # Multiline-safe output for the body
+          "body<<__EOF__"             >> $env:GITHUB_OUTPUT
+          $ghBody                     >> $env:GITHUB_OUTPUT
+          "__EOF__"                   >> $env:GITHUB_OUTPUT
 
       - name: Create GitHub Release
         if: ${{ github.ref_type == 'tag' }}
@@ -74,7 +75,8 @@ jobs:
         with:
           files: "*.nupkg"
           name: "${{ steps.package-info.outputs['package-id'] }} v${{ steps.package-info.outputs['package-version'] }}"
-          # Prefer nuspec releaseNotes if non-empty; otherwise fall back to a default message
-          body: ${{ steps.package-info.outputs['release-notes'] != '' && steps.package-info.outputs['release-notes'] || format('Release of {0} version {1}', steps.package-info.outputs['package-id'], steps.package-info.outputs['package-version']) }}
+          body: ${{ steps.package-info.outputs.body }}
+          # If you want to *append* to an existing release body instead of overwrite:
+          # append_body: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
