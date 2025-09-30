@@ -1,28 +1,40 @@
 name: publish-to-chocolatey
 
 on:
-  workflow_run:
-    workflows: ["build-and-release"]   # name of your build workflow
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
+    environment: chocolatey
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download artifact from triggering run
-        uses: actions/download-artifact@v4
-        with:
-          name: nupkg
-          run-id: ${{ github.event.workflow_run.id }}
+      - name: Download .nupkg from the latest GitHub Release
+        shell: pwsh
+        env:
+          # GitHub-hosted runners provide gh; we auth with the workflow token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Grab *.nupkg assets from the latest non-prerelease, non-draft release
+          gh release download --repo "$env:GITHUB_REPOSITORY" --latest -p '*.nupkg' -D dist
+
+          if (-not (Test-Path dist)) { throw "No assets downloaded. Does the latest release have a .nupkg attached?" }
+          $pkgs = Get-ChildItem dist\*.nupkg
+          if (-not $pkgs) { throw "No .nupkg files found in the latest release assets." }
+
+          # If multiple packages exist, pick the first (or add your own selection logic)
+          $pkgs | Format-Table Name,Length,LastWriteTime
+          "$($pkgs.Count) .nupkg file(s) downloaded."
 
       - name: Push to Chocolatey
         shell: pwsh
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
         run: |
+          $nupkg = Get-ChildItem dist\*.nupkg | Select-Object -First 1
+          if (-not $nupkg) { throw "No .nupkg found to push." }
           choco apikey --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
-          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
-          choco push $nupkg --source https://push.chocolatey.org/
+          Write-Host "Pushing $($nupkg.FullName) to Chocolatey…"
+          choco push $nupkg.FullName --source https://push.chocolatey.org/
