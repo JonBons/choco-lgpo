@@ -39,5 +39,10 @@ if (-not (Test-Path -LiteralPath $targetExe)) {
     }
 }
 
+# Handle legacy migration.
+$helpers = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) 'includes\legacy-cleanup.ps1'
+if (Test-Path -LiteralPath $helpers) { . $helpers }
+Invoke-LegacyCleanup -PackageName $env:ChocolateyPackageName
+
 # DO NOT add to PATH. Chocolatey generates a shim for any exe under tools (unless .ignore is present).
 # Users will be able to run `lgpo` directly via the Chocolatey shim located under %ChocolateyInstall%\bin.
