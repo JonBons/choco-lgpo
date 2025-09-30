@@ -1,26 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<!-- If “Ω” doesn’t render, switch to a UTF-8 capable editor. -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>lgpo</id>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <packageSourceUrl>https://github.com/JonBons/choco-lgpo</packageSourceUrl>
-    <owners>mgrahamdev</owners>
-    <title>Local Group Policy Object (LGPO) tool</title>
-    <authors>Microsoft</authors>
-    <iconUrl>https://i.gyazo.com/e01f0421772b4ef01c132171fd125483.png</iconUrl>
-    <releaseNotes>https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10</releaseNotes>
-    <licenseUrl>https://www.scribd.com/document/630005966/Microsoft-Security-Compliance-Toolkit-Standalone-Use-Terms</licenseUrl>
-    <docsUrl>https://techcommunity.microsoft.com/blog/microsoft-security-baselines/new--updated-security-tools/1631613</docsUrl>
     <projectUrl>https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10#what-is-the-local-group-policy-object-lgpo-tool</projectUrl>
-    <tags>lgpo windows security gpo</tags>
-    <summary>LGPO.exe is a command-line utility that is designed to help automate management of Local Group Policy.</summary>
+    <docsUrl>https://techcommunity.microsoft.com/blog/microsoft-security-baselines/new--updated-security-tools/1631613</docsUrl>
+    <bugTrackerUrl>https://github.com/JonBons/choco-lgpo/issues</bugTrackerUrl>
+    <owners>mgrahamdev</owners>
+    <authors>Microsoft</authors>
+    <title>Local Group Policy Object (LGPO) tool</title>
+    <iconUrl>https://i.gyazo.com/e01f0421772b4ef01c132171fd125483.png</iconUrl>
+    <licenseUrl>https://www.scribd.com/document/630005966/Microsoft-Security-Compliance-Toolkit-Standalone-Use-Terms</licenseUrl>
+    <releaseNotes>
+      https://github.com/JonBons/choco-lgpo/releases/tag/v1.1.0
+
+      Changes:
+      - Install now extracts into the package 'tools' directory and relies on Chocolatey shims (no PATH edits).
+      - Uninstall/upgrade performs best-effort migration cleanup of legacy installs (removes old PATH entry, deletes LGPO.exe, optional LGPO_30 dir, prunes empty folders).
+      - No ARP entry is created; this is a portable package.
+    </releaseNotes>
+    <tags>lgpo windows security gpo portable cli policy shim</tags>
+    <summary>LGPO.exe is a command-line utility to automate management of Local Group Policy.</summary>
     <description>
-LGPO.exe is a command-line utility that is designed to help automate management of Local Group Policy. Using local policy gives administrators a simple way to verify the effects of Group Policy settings, and is also useful for managing non-domain-joined systems. LGPO.exe can import and apply settings from Registry Policy (Registry.pol) files, security templates, Advanced Auditing backup files, and from formatted "LGPO text" files. It can export local policy to a GPO backup. It can export the contents of a Registry Policy file to the "LGPO text" format that can then be edited, and can build a Registry Policy file from an LGPO text file.
+LGPO.exe is a command-line utility that helps automate management of Local Group Policy. It can import and apply settings from Registry Policy (Registry.pol) files, security templates, Advanced Auditing backup files, and formatted "LGPO text" files; export local policy to a GPO backup; export Registry Policy contents to editable LGPO text; and build a Registry Policy file from LGPO text.
     </description>
   </metadata>
+
   <files>
-    <!-- this section controls what actually gets packaged into the Chocolatey package -->
     <file src="tools\**" target="tools" />
   </files>
 </package>
