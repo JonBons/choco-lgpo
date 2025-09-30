@@ -11,22 +11,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download .nupkg from the latest GitHub Release
+      - name: Download .nupkg from latest GitHub Release (no --latest flag)
         shell: pwsh
         env:
-          # GitHub-hosted runners provide gh; we auth with the workflow token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Grab *.nupkg assets from the latest non-prerelease, non-draft release
-          gh release download --repo "$env:GITHUB_REPOSITORY" --latest -p '*.nupkg' -D dist
+          $repo = $env:GITHUB_REPOSITORY
+          $tag  = gh api "repos/$repo/releases/latest" --jq ".tag_name"
+          if (-not $tag) { throw "Could not determine latest release tag for $repo" }
+          Write-Host "Latest release tag: $tag"
+
+          # Download only the .nupkg assets from that release
+          gh release download $tag -P "*.nupkg" -D dist
 
           if (-not (Test-Path dist)) { throw "No assets downloaded. Does the latest release have a .nupkg attached?" }
           $pkgs = Get-ChildItem dist\*.nupkg
           if (-not $pkgs) { throw "No .nupkg files found in the latest release assets." }
-
-          # If multiple packages exist, pick the first (or add your own selection logic)
           $pkgs | Format-Table Name,Length,LastWriteTime
-          "$($pkgs.Count) .nupkg file(s) downloaded."
 
       - name: Push to Chocolatey
         shell: pwsh
