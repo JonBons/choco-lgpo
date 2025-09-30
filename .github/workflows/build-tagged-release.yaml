@@ -17,42 +17,64 @@ jobs:
     needs: test
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - name: Checkout
+        uses: actions/checkout@v5
+
       - name: Install Chocolatey
+        shell: pwsh
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
           iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        shell: pwsh
-      
+
       - name: Build Package
+        shell: pwsh
         run: |
           choco pack
-        shell: pwsh
-      
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: nupkg
-          path: '*.nupkg'
-          
-      - name: Extract package info
+          path: "*.nupkg"
+
+      - name: Extract package info (id, version, release notes)
         id: package-info
         shell: pwsh
         run: |
-          $nuspec = [xml](Get-Content lgpo.nuspec)
+          # Resolve nuspec (defaults to lgpo.nuspec; falls back to first *.nuspec)
+          $nuspecPath = if (Test-Path "lgpo.nuspec") { "lgpo.nuspec" } else { (Get-ChildItem -Filter *.nuspec | Select-Object -First 1).FullName }
+          if (-not $nuspecPath) { throw "No .nuspec file found." }
+
+          # Parse nuspec
+          [xml]$nuspec = Get-Content -LiteralPath $nuspecPath
+          $id      = $nuspec.package.metadata.id
           $version = $nuspec.package.metadata.version
-          $id = $nuspec.package.metadata.id
-          "package-id=$id" >> $env:GITHUB_OUTPUT
+
+          # Handle <releaseNotes> if present (preserve multiline/markdown)
+          $rnNode = $nuspec.package.metadata.releaseNotes
+          $releaseNotes = ""
+          if ($rnNode) {
+            # InnerText keeps CDATA text too; Trim to avoid accidental leading/trailing whitespace
+            $releaseNotes = ($rnNode.InnerText | Out-String).Trim()
+          }
+
+          # Standard outputs
+          "package-id=$id"       >> $env:GITHUB_OUTPUT
           "package-version=$version" >> $env:GITHUB_OUTPUT
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+
+          # Multiline output for release notes (safe even if empty)
+          "release-notes<<__RN__" >> $env:GITHUB_OUTPUT
+          $releaseNotes           >> $env:GITHUB_OUTPUT
+          "__RN__"                >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: ${{ github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2
         with:
-          files: '*.nupkg'
-          name: "${{ steps.package-info.outputs.package-id }} v${{ steps.package-info.outputs.package-version }}"
-          body: "Release of ${{ steps.package-info.outputs.package-id }} version ${{ steps.package-info.outputs.package-version }}"
+          files: "*.nupkg"
+          name: "${{ steps.package-info.outputs['package-id'] }} v${{ steps.package-info.outputs['package-version'] }}"
+          # Prefer nuspec releaseNotes if non-empty; otherwise fall back to a default message
+          body: ${{ steps.package-info.outputs['release-notes'] != '' && steps.package-info.outputs['release-notes'] || format('Release of {0} version {1}', steps.package-info.outputs['package-id'], steps.package-info.outputs['package-version']) }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
