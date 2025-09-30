@@ -6,9 +6,12 @@ on:
       - 'v*'
 
 jobs:
+  test:
+    uses: ./.github/workflows/check-lgpo.yml
+
   build:
+    needs: test
     runs-on: windows-latest
-    
     steps:
       - uses: actions/checkout@v3
       
