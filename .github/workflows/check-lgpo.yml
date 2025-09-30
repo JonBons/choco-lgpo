@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: '10 0 1 * *'  # Run monthly at 00:10 UTC on the 1st
   workflow_dispatch:
+  workflow_call:
 
 # Grant the workflow token the scopes your tests need.
 permissions:
