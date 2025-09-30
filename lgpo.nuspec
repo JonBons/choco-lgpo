@@ -14,9 +14,9 @@
     <iconUrl>https://i.gyazo.com/e01f0421772b4ef01c132171fd125483.png</iconUrl>
     <licenseUrl>https://www.scribd.com/document/630005966/Microsoft-Security-Compliance-Toolkit-Standalone-Use-Terms</licenseUrl>
     <releaseNotes>
-      - Install now extracts into the package 'tools' directory and relies on Chocolatey shims (no PATH edits).
-      - Uninstall/upgrade performs best-effort migration cleanup of legacy installs (removes old PATH entry, deletes LGPO.exe, optional LGPO_30 dir, prunes empty folders).
-      - No ARP entry is created; this is a portable package.
+- Install now extracts into the package 'tools' directory and relies on Chocolatey shims (no PATH edits).
+- Uninstall/upgrade performs best-effort migration cleanup of legacy installs (removes old PATH entry, deletes LGPO.exe, optional LGPO_30 dir, prunes empty folders).
+- No ARP entry is created; this is a portable package.
     </releaseNotes>
     <tags>lgpo windows security gpo portable cli policy shim</tags>
     <summary>LGPO.exe is a command-line utility to automate management of Local Group Policy.</summary>
