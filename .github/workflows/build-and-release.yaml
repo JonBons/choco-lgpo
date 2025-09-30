@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    uses: ./.github/workflows/check-lgpo.yml
+    uses: ./.github/workflows/test-lgpo.yml
 
   build:
     needs: test
