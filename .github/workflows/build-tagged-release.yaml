@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+# Grant the workflow token the scopes your tests need.
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   test:
     uses: ./.github/workflows/check-lgpo.yml
