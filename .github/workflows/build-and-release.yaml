@@ -1,4 +1,4 @@
-name: Build Chocolatey Package
+name: build-and-release
 
 on:
   push:

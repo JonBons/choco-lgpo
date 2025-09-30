@@ -1,5 +1,5 @@
 # ```yaml
-name: Test LGPO Download
+name: test-lgpo
 
 on:
   schedule:
