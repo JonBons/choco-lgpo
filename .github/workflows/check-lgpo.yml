@@ -1,27 +1,38 @@
+# ```yaml
 name: Test LGPO Download
 
 on:
   schedule:
-    - cron: '10 0 1 * *'  # Run monthly at 10am UTC
-  workflow_dispatch:  # Allow manual trigger
+    - cron: '10 0 1 * *'  # Run monthly at 00:10 UTC on the 1st
+  workflow_dispatch:
+
+# Grant the workflow token the scopes your tests need.
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   test:
+    # Optional: only allow issue creation from the canonical repo (not forks)
+    if: ${{ github.repository_owner == 'jonbons' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests PyGithub
-          
+
       - name: Run tests
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pass the workflow token explicitly so your test can pick it up.
+          GITHUB_TOKEN: ${{ github.token }}
+          # GITHUB_REPOSITORY is already provided by Actions, but passing is harmless.
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: python -m unittest tests/test_lgpo_download.py
