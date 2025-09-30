@@ -6,7 +6,7 @@ import os
 from github import Github, GithubException
 
 LGPO_URL = "https://download.microsoft.com/download/8/5/C/85C25433-A1B0-4FFA-9429-7E023E7DA8D8/LGPO.zip"
-EXPECTED_SHA256 = "AB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55"
+EXPECTED_SHA256 = "CB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55"
 
 class TestLGPODownload(unittest.TestCase):
     def _http_get_with_retries(self, url, attempts=3, timeout=30):
