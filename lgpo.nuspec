@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>lgpo</id>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packageSourceUrl>https://github.com/JonBons/choco-lgpo</packageSourceUrl>
     <projectUrl>https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10#what-is-the-local-group-policy-object-lgpo-tool</projectUrl>
     <docsUrl>https://techcommunity.microsoft.com/blog/microsoft-security-baselines/new--updated-security-tools/1631613</docsUrl>
@@ -14,9 +14,7 @@
     <iconUrl>https://i.gyazo.com/e01f0421772b4ef01c132171fd125483.png</iconUrl>
     <licenseUrl>https://www.scribd.com/document/630005966/Microsoft-Security-Compliance-Toolkit-Standalone-Use-Terms</licenseUrl>
     <releaseNotes>
-- Install now extracts into the package 'tools' directory and relies on Chocolatey shims (no PATH edits).
-- Uninstall/upgrade performs best-effort migration cleanup of legacy installs (removes old PATH entry, deletes LGPO.exe, optional LGPO_30 dir, prunes empty folders).
-- No ARP entry is created; this is a portable package.
+- Install process now runs the legacy migration cleanup script to remove old PATH entries and files from prior installs.
     </releaseNotes>
     <tags>lgpo windows security gpo portable cli policy shim</tags>
     <summary>LGPO.exe is a command-line utility to automate management of Local Group Policy.</summary>
